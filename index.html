@@ -145,6 +145,12 @@
         triggerSpin();
       }
     });
+
+window.addEventListener("message", (event) => {
+  if (event.data === "spin" || (event.data && event.data.action === "spin")) {
+    triggerSpin();
+  }
+});
   </script>
 
 </body>
