@@ -1,12 +1,55 @@
 <!DOCTYPE html>
 <html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Roue aléatoire GTA</title>
+  <style>
+    body {
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+      margin: 0;
+    }
+
+    #wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: auto;
+    }
+
+    canvas {
+      display: block;
+      background: #222;
+      border-radius: 50%;
+    }
+
+    #arrow {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%) rotate(180deg);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 30px solid red;
+      z-index: 10;
+    }
+
+    #result {
+      margin-top: 50px;
+      font-size: 24px;
+    }
+  </style>
+</head>
 <body>
 
   <div id="wheel-container">
     <canvas id="wheel" width="300" height="300"></canvas>
     <div id="arrow"></div>
   </div>
-  <button onclick="spin()">Tourner la roue</button>
   <div id="result"></div>
 
   <script>
@@ -18,6 +61,7 @@
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     let angleOffset = 0;
+    let spinning = false;
 
     const logo = new Image();
     logo.src = 'V1-NOFOND.png';
@@ -51,7 +95,7 @@
         ctx.restore();
       }
 
-      // Cercle central blanc
+      // Cercle blanc central
       ctx.beginPath();
       ctx.fillStyle = "#fff";
       ctx.arc(centerX, centerY, 45, 0, 2 * Math.PI);
@@ -62,7 +106,10 @@
       ctx.drawImage(logo, centerX - logoSize / 2, centerY - logoSize / 2, logoSize, logoSize);
     }
 
-    function spin() {
+    function triggerSpin() {
+      if (spinning) return;
+      spinning = true;
+
       const spins = Math.floor(Math.random() * 3) + 3;
       const spinAngle = spins * 2 * Math.PI + Math.random() * 2 * Math.PI;
       const duration = 3000;
@@ -81,6 +128,7 @@
           const index = Math.floor((segments.length - (normalized / arc)) % segments.length);
           const reward = segments[index >= 0 ? index : index + segments.length];
           document.getElementById('result').textContent = "Résultat : " + reward;
+          spinning = false;
         }
       }
 
@@ -90,6 +138,13 @@
     function easeOut(t) {
       return 1 - Math.pow(1 - t, 3);
     }
+
+    // ✅ Webhook via message depuis TikFinity
+    window.addEventListener("message", (event) => {
+      if (event.data === "spin" || (event.data && event.data.action === "spin")) {
+        triggerSpin();
+      }
+    });
   </script>
 
 </body>
