@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Roue aléatoire GTA</title>
+  <style>
+    body {
+      /* Fond transparent (pas de couleur définie) */
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+      margin: 0;
+    }
+
+    #wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: auto;
+    }
+
+    canvas {
+      display: block;
+      background: #222;
+      border-radius: 50%;
+    }
+
+    #arrow {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%) rotate(180deg);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 30px solid red;
+      z-index: 10;
+    }
+
+    button {
+      margin-top: 50px; /* ⬅️ augmenté pour espacer davantage */
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #0f0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Roue Aléatoire GTA</h1>
+  <div id="wheel-container">
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <div id="arrow"></div>
+  </div>
+  <button onclick="spin()">Tourner la roue</button>
+  <div id="result"></div>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const segments = ["+3", "-1", "+1", "-3", "+5", "-5"];
+    const arc = 2 * Math.PI / segments.length;
+    const radius = 140;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    let angleOffset = 0;
+
+    const logo = new Image();
+    logo.src = 'V1-NOFOND.png';
+
+    logo.onload = () => {
+      drawWheel();
+    };
+
+    function getColor(value) {
+      return value.startsWith('+') ? '#3498db' : '#e74c3c';
+    }
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < segments.length; i++) {
+        const angle = i * arc + angleOffset;
+        ctx.beginPath();
+        ctx.fillStyle = getColor(segments[i]);
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arc);
+        ctx.fill();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px Arial";
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillText(segments[i], radius - 10, 5);
+        ctx.restore();
+      }
+
+      // Cercle central blanc
+      ctx.beginPath();
+      ctx.fillStyle = "#fff";
+      ctx.arc(centerX, centerY, 45, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // Logo au centre
+      const logoSize = 60;
+      ctx.drawImage(logo, centerX - logoSize / 2, centerY - logoSize / 2, logoSize, logoSize);
+    }
+
+    function spin() {
+      const spins = Math.floor(Math.random() * 3) + 3;
+      const spinAngle = spins * 2 * Math.PI + Math.random() * 2 * Math.PI;
+      const duration = 3000;
+      const start = performance.now();
+
+      function animate(time) {
+        const progress = Math.min((time - start) / duration, 1);
+        angleOffset = spinAngle * easeOut(progress);
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          const pointerAngle = Math.PI / 2;
+          const normalized = (angleOffset + pointerAngle) % (2 * Math.PI);
+          const index = Math.floor((segments.length - (normalized / arc)) % segments.length);
+          const reward = segments[index >= 0 ? index : index + segments.length];
+          document.getElementById('result').textContent = "Résultat : " + reward;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function easeOut(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+  </script>
+
+</body>
+</html>
